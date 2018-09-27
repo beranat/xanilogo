@@ -1,0 +1,69 @@
+.TH xanilogo 1 "04-jun-02" "Version 1.0.0"
+.SH NAME
+xanilogo - draws in 3D reversing letter 'X'
+.SH SYNOPSIS
+.B xanilogo
+[\-display \fIhost:display.screen\fP] [\-geom \fIgeometry\fP]
+[\-double] [\-shared]
+[\-color \fIcolor\fP]
+[\-anim \fItime(ms)\fP] [\-visible \fItime(ms)\fP] [\-hidden \fItime(ms)\fP]
+[\-log \fIfile name\fP]
+[\-maxfps \fIfps\fP] [\-showfps]
+[\-root]
+[\-window-id \fIxid\fP]
+.SH DESCRIPTION
+The \fIxanilogo\fP program draws in the pseudo 3D using only simplest X11-calls (draw rectangles) a animation sequence letter X reversing frames from full invisiblty up to perpendicular projection and back.
+.SH OPTIONS
+.I xanilogo
+accepts the following options:
+.TP 8
+.B \-display \fIdisplay\fB
+Specify the display to use; see \fIX(7)\fP.
+.TP 8
+.B \-geom \fIgeometry\fB
+Define the initial window geometry; see \fIX(7)\fP.
+.TP 8
+.B \-color \fIcolor\fB
+force define X fill color (random color is used by default).
+.TP 8
+.B \-anim \fItime(ms)\fB
+Fade in and fade out duration.
+.TP 8
+.B \-visible \fItime(ms)\fB
+Still X duration.
+.TP 8
+.B \-hidden \fItime(ms)\fB
+Black screen time (period between two animations).
+.TP 8
+.B \-log \ffile name\fB
+Log to file instead stderr stream.
+.TP 8
+.B \-maxfps \fIfps\fP
+Limit maximum frames per second (reduce cpu usage).
+.TP 8
+.B \-double
+Double buffer for drawing (prevent flicking, but needs more memory and cpu).
+.TP 8
+.B \-shared
+Detect multiple access to one window \- prevent multiple re-drawing at the same time (window has been set by \fB\-root\fP or \fB\-window-id\fP options).
+.TP 8
+.B \-showfps
+Display the current frame rate.
+.TP 8
+.B \-root
+Draw on the root window.
+.TP 8
+.B \-window-id \fIxid\fP
+Use for drawing x-window with xid.
+.SH ENVIRONMENT
+.PP
+.TP 8
+.B DISPLAY
+to get the default host and display number.
+.SH SEE ALSO
+.BR X (1),
+.BR xscreensaver (1)
+.SH COPYRIGHT
+Copyright \(co 2002 by madRat. Permission to use, copy, modify, distribute, and sell this software and its documentation for any purpose is hereby granted without fee, provided that the above copyright notice appear in all copies and that both that copyright notice and this permission notice appear in supporting documentation.  No representations are made about the suitability of this software for any purpose.  It is provided "as is" without express or implied warranty.
+.SH AUTHOR
+madRat <madrat@hotbox.ru>.
