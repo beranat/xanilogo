@@ -10,7 +10,7 @@ License:	GPL v3
 URL:		https://github.com/beranat/xanilogo/
 
 BuildRequires:	gcc-c++ make
-#Requires:	
+Requires:		xscreensaver-base
 
 %description
 The application program draws in the pseudo 3D using only simplest X11-calls (draw rectangles) a animation sequence letter X reversing frames from full invisiblty up to perpendicular projection and back.
@@ -28,6 +28,9 @@ The application program draws in the pseudo 3D using only simplest X11-calls (dr
 
 %install
 %make_install
+
+%post
+/usr/sbin/update-xscreensaver-hacks
 
 %files
 %defattr(-,root,root,-)

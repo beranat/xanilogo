@@ -39,6 +39,8 @@ install: $(BIN)
 	install -D '$(BIN)' '$(DESTDIR)/usr/libexec/xscreensaver/$(BIN)'
 	install -Dm644 '$(XML)' '$(DESTDIR)/usr/share/xscreensaver/config/$(XML)'
 	install -Dm644 '$(CONF)' '$(DESTDIR)/usr/share/xscreensaver/hacks.conf.d/$(CONF)'
-	test -n '$(DESTDIR)' || /usr/sbin/update-xscreensaver-hacks
 
-.PHONY: clean install check
+update:
+	/usr/sbin/update-xscreensaver-hacks
+
+.PHONY: clean install check update
