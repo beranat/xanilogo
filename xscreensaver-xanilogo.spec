@@ -5,9 +5,11 @@
 %{error:Path to source (srcdir) is not defined}
 %endif
 
+%global rev %(bash -c 'test 0 -eq $(git -C "%{srcdir}" diff --name-only | wc -l) && git -C "%{srcdir}" rev-list --all --count || echo "dev"')
+
 Name:		xscreensaver-xanilogo
 Version:	1.0.0
-Release:	1%{?dist}
+Release:	%{rev}%{?dist}
 Summary:	Simple X-logo animation for XScreenSaver and generic application
 
 Group:		Amusements/Graphics
