@@ -1,4 +1,9 @@
-# _sourcedir
+#rpmbuild -bb --define "srcdir $PWD" ./xscreensaver-xanilogo.spec
+# srcdir
+
+%if 0 == 0%{?srcdir:1}
+%{error:Path to source (srcdir) is not defined}
+%endif
 
 Name:		xscreensaver-xanilogo
 Version:	1.0.0
@@ -9,7 +14,7 @@ Group:		Amusements/Graphics
 License:	GPL v3
 URL:		https://github.com/beranat/xanilogo/
 
-BuildRequires:	gcc-c++ make
+BuildRequires:	gcc-c++ make libX11-devel
 Requires:		xscreensaver-base
 
 %description
@@ -17,7 +22,7 @@ The application program draws in the pseudo 3D using only simplest X11-calls (dr
 
 %prep
 %setup -cTn %{name}-%{version}
-%{__cp} -R %{_sourcedir}/* ./
+%{__cp} -R %{srcdir}/* ./
 
 %build
 %{__make} clean
