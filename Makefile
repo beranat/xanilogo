@@ -23,13 +23,15 @@ XFCE-DESKTOP=$(NAME).desktop
 
 SOURCES=$(wildcard *.cpp)
 
-all: $(BIN)
+all: check $(BIN)
 
 $(BIN): $(SOURCES)
 	g++ $(CPPFLAGS) $(CXXFLAGS) $^ $(LDFLAGS) -o $@
 
 check:
 	cppcheck $(CPPCHECKFLAGS) $(SOURCES)
+	xmllint $(XML) >/dev/null
+	desktop-file-validate $(XFCE-DESKTOP)
 
 clean:
 	rm -f $(BIN)

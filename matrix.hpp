@@ -2,17 +2,17 @@
 //------------------------------------------------------------------------------
 // This file is part of XAniLogo application.
 //------------------------------------------------------------------------------
-// XAniLogo is  free software:  you can redistribute it  and/or modify it  under 
-// the terms of the GNU General Public License as published by the Free Software 
-// Foundation, either version 3 of the License, or (at your option) 
+// XAniLogo is  free software:  you can redistribute it  and/or modify it  under
+// the terms of the GNU General Public License as published by the Free Software
+// Foundation, either version 3 of the License, or (at your option)
 // any later version.
 //------------------------------------------------------------------------------
-// XAniLogo distributed in the hope that it will be useful, but WITHOUT ANY 
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
-// FOR A PARTICULAR PURPOSE. 
+// XAniLogo distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //------------------------------------------------------------------------------
-// You should have received a copy of the GNU General Public License along with 
+// You should have received a copy of the GNU General Public License along with
 // application. If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
@@ -94,12 +94,12 @@ template <typename T> struct Vector4 {
 
 	Vector4<T> normalized() const {
 		const T l = length();
-		Vector4<T> v(*this);
+		Vector4<T> t(*this);
 		if (l > 2*std::numeric_limits<T>::epsilon()) {
-			for (int i =0; i < 4; ++i)
-				v[i] /= l;
+			for (size_t i =0; i < sizeof(t.v)/sizeof(*t.v); ++i)
+				t.v[i] /= l;
 		}
-		return v;
+		return t;
 	}
 };
 

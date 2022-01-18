@@ -99,8 +99,8 @@ float animScale = 0.75f;
 
 FloatMatrix viewport(1);
 const FloatMatrix projection = setOrthographic<float>() // setPerspective(3.0f, 10.0f)
-									*setScale(FloatVector(-0.75f, -0.75f, 1))
-									*setTranslation(FloatVector(0.f, 0.f, 2.0f));
+							   *setScale(FloatVector(-0.75f, -0.75f, 1))
+							   *setTranslation(FloatVector(0.f, 0.f, 2.0f));
 // X-logo data
 static const XColor Xcolors[] = {
 	{0, 0x8000, 0x8000, 0x8000},	// white
@@ -123,7 +123,7 @@ static const char *argLongHelp = "--help";
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 static const XrmOptionDescRec xrmOptions[] {
 	{"-geom",       ".geometry",    XrmoptionSepArg, NULL},
-	{"-double",     ".doublebuffer",XrmoptionNoArg,  "true"},
+	{"-double",     ".doublebuffer", XrmoptionNoArg,  "true"},
 	{"-shared",     ".shared",      XrmoptionNoArg,  "true"},
 	{"-color",      ".color",       XrmoptionSepArg, NULL},
 	{"-anim",       ".animation",   XrmoptionSepArg, NULL},
@@ -189,7 +189,7 @@ void replaceColor(const Colormap &colormap, const XColor &color, XColorPtr &hand
 }
 
 void renderX(const Drawable &window, const GC &gc, const Colormap &colormap, XColorPtr &color,
-                    const float &sx, const float &sy) {
+			 const float &sx, const float &sy) {
 
 	long long pos = getNow() - animStart;
 
@@ -212,7 +212,7 @@ void renderX(const Drawable &window, const GC &gc, const Colormap &colormap, XCo
 	}
 
 	FloatMatrix model =    setTranslation(FloatVector(-1, -1))*
-								setScale(FloatVector(2.0f/Xsize.x, 2.0f/Xsize.y));
+						   setScale(FloatVector(2.0f/Xsize.x, 2.0f/Xsize.y));
 	FloatMatrix rotate= setRotation((float)M_PI, FloatVector(0, 0, 1, 0));
 
 	pos -= animationPeriod;
@@ -237,9 +237,9 @@ void renderX(const Drawable &window, const GC &gc, const Colormap &colormap, XCo
 	g1.reserve(g0.size());
 
 	const FloatMatrix panim = projection
-								   *setTranslation(animPos)
-								   *setScale(FloatVector(animScale, animScale, animScale))
-								   *anim;
+							  *setTranslation(animPos)
+							  *setScale(FloatVector(animScale, animScale, animScale))
+							  *anim;
 	for (auto &g : g0) {
 		const FloatVector p = model*FloatVector(g);
 		g1.push_back(viewport*~(panim*rotate*p));
@@ -308,7 +308,7 @@ void render(const Window &window, const GC &gc, const Colormap &colormap, Pixmap
 								  length,	length);
 
 	renderX(drawable, gc, colormap, color,
-            static_cast<float>(geometry.width)/length, static_cast<float>(geometry.height)/length);
+			static_cast<float>(geometry.width)/length, static_cast<float>(geometry.height)/length);
 
 	if (isShowFps) {
 		XSetForeground(getAppDisplay(), gc, colorWhite.pixel);
@@ -327,11 +327,11 @@ void render(const Window &window, const GC &gc, const Colormap &colormap, Pixmap
 				  0, 0, geometry.width, geometry.height, geometry.x, geometry.y);
 }
 
-template<class T> bool getValue(XrmDatabasePtr &db, const char *name, T &value){
+template<class T> bool getValue(XrmDatabasePtr &db, const char *name, T &value) {
 	return getValue(db.get(), name, value);
 }
 
-template<class T, class D> bool getValue(XrmDatabasePtr &db, const char *name, T &value, const D def){
+template<class T, class D> bool getValue(XrmDatabasePtr &db, const char *name, T &value, const D def) {
 	return getValue(db.get(), name, value, def);
 }
 
@@ -367,9 +367,8 @@ void initVariables(int argc, char *argv[]) {
 	if (bool isRoot = false; getValue(db, "root", isRoot) && isRoot)
 		windowId = DefaultRootWindow(getAppDisplay());
 
-	if (Window id = None; getValue(db, "windowId",   id)) {
-		windowId = id;
-	}
+	if (Window wid = None; getValue(db, "windowId", wid))
+		windowId = wid;
 	else if (const char *xid = getenv("XSCREENSAVER_WINDOW"); xid != NULL) {
 		char *tail = nullptr;
 		const Window id = static_cast<Window>(strtoul(xid, &tail, 0));
@@ -386,38 +385,39 @@ void initVariables(int argc, char *argv[]) {
 	}
 }
 
-std::string getProcessPath(const char* arg0) {
-    static const char *PROC_SELF = "/proc/self/exe";
+std::string getProcessPath(const char *arg0) {
 
-    {   // QUERY 'PROC_SELF'
-        std::string path(std::max(PATH_MAX, 0x100), '\0');
-        do {
-            const ssize_t r = readlink(PROC_SELF, &*path.begin(), path.size());
-            if (-1 == r) {
-                const int error = errno;
-                std::cerr<<"NOTICE: "<<"Read process link '"<<PROC_SELF<<"' errno="<<error<<", skipped."<<std::endl;
-                break;
-            }
+	{
+		// QUERY 'PROC_SELF'
+		static constexpr const char *PROC_SELF = "/proc/self/exe";
+		std::string path(std::max(PATH_MAX, 0x100), '\0');
+		do {
+			const ssize_t r = readlink(PROC_SELF, &*path.begin(), path.size());
+			if (-1 == r) {
+				const int error = errno;
+				std::cerr<<"NOTICE: "<<"Read process link '"<<PROC_SELF<<"' errno="<<error<<", skipped."<<std::endl;
+				break;
+			}
 
-            if (path.size() > r)
-                return path;
+			if (path.size() > r)
+				return path;
 
-            path.resize(path.size()<<1);
-        } while (true);
-    }
+			path.resize(path.size()<<1);
+		} while (true);
+	}
 
-    char *path = realpath(arg0, NULL);
-    if (nullptr == path)
-        throw std::system_error(errno, std::system_category(), "No realpath for argv[0]");
+	char *path = realpath(arg0, NULL);
+	if (nullptr == path)
+		throw std::system_error(errno, std::system_category(), "No realpath for argv[0]");
 
-    std::string result = path;
-    free(path);
-    path = nullptr;
+	std::string result = path;
+	free(path);
+	path = nullptr;
 
-    if (result.length() < 2) // "/a" - smallest valid name
-        throw std::runtime_error("Invalid realpath for argv");
+	if (result.length() < 2) // "/a" - smallest valid name
+		throw std::runtime_error("Invalid realpath for argv");
 
-    return path;
+	return path;
 }
 
 int main(int argc, char *argv[]) try {
@@ -442,166 +442,168 @@ int main(int argc, char *argv[]) try {
 		return EXIT_SUCCESS;
 	}
 
-		std::shared_ptr<int> sharedAccess;
+	std::shared_ptr<int> sharedAccess;
 
-		srand(time(NULL));
-		appDisplay.reset(XOpenDisplay(NULL), XCloseDisplay);
-		if (!appDisplay)
-			throw std::runtime_error("Can not open getAppDisplay()");
+	srand(time(NULL));
+	appDisplay.reset(XOpenDisplay(NULL), XCloseDisplay);
+	if (!appDisplay)
+		throw std::runtime_error("Can not open getAppDisplay()");
 
-		XSetErrorHandler(xErrorHandler);
-		if (SIG_ERR == signal(SIGTERM, breakSignalHandler))
-			throw std::system_error(errno,  std::system_category(), "set signal handler");
+	XSetErrorHandler(xErrorHandler);
+	if (SIG_ERR == signal(SIGTERM, breakSignalHandler))
+		throw std::system_error(errno,  std::system_category(), "set signal handler");
 
-		initVariables(argc, argv);
+	initVariables(argc, argv);
 
-		const int screen = DefaultScreen(getAppDisplay());
-		PixmapHandle icon(nullptr, releasePixmap);
-		std::shared_ptr<Window> window(new Window(windowId));
+	const int screen = DefaultScreen(getAppDisplay());
+	PixmapHandle icon(nullptr, releasePixmap);
+	std::shared_ptr<Window> window(new Window(windowId));
 
-		if (None == *window) {
-			if (isMultipleAccess)
-				std::cerr<<"NOTICE: Multiple access is not applicable to the private window, ignored."<<std::endl;
+	if (None == *window) {
+		if (isMultipleAccess)
+			std::cerr<<"NOTICE: Multiple access is not applicable to the private window, ignored."<<std::endl;
 
-			Window wnd = XCreateSimpleWindow(getAppDisplay(), DefaultRootWindow(getAppDisplay()),
-											 geom.x, geom.y, geom.width, geom.height, 1,
-											 WhitePixel(getAppDisplay(), screen), BlackPixel(getAppDisplay(), screen));
-			if (None == wnd)
-				throw std::runtime_error("Can not create main window");
-			window.reset(new Window(wnd), [](Window *w) {
-				XDestroyWindow(getAppDisplay(), *w);
-				delete w;
-			});
-
-			XStoreName(getAppDisplay(), wnd, APP_NAME);
-			XSetIconName(getAppDisplay(), wnd, APP_NAME);
-
-			XSizeHints sh = { 0 };
-			sh.width = sh.min_width = geom.width;
-			sh.height = sh.min_height = geom.height;
-			sh.x = geom.x;
-			sh.y = geom.y;
-			sh.flags = PSize | PMinSize | PPosition;
-			XSetWMNormalHints(getAppDisplay(), wnd, &sh);
-
-			icon.reset(new Pixmap(
-						   XCreateBitmapFromData(getAppDisplay(), wnd, (const char *)xlogo_bits,
-												 xlogo_width, xlogo_height)));
-			XWMHints wh = { 0 };
-			wh.flags = IconPixmapHint;
-			wh.icon_pixmap = *icon;
-			XSetWMHints(getAppDisplay(), wnd, &wh);
-
-			Atom delWindow = XInternAtom(getAppDisplay(), "WM_DELETE_WINDOW", False);
-			XSetWMProtocols(getAppDisplay(), wnd, &delWindow, 1);
-
-			XSelectInput(getAppDisplay(), wnd, ExposureMask | KeyPressMask | ButtonPressMask);
-
-			XMapWindow(getAppDisplay(), wnd);
-		} else {
-			if (isMultipleAccess) {
-				// Simple lock on exe file - need not extra file(s)
-				{
-					const int fd = open(getProcessPath(argv[0]).c_str(), O_CLOEXEC | O_RDONLY, 0);
-					if (fd < 0)
-						throw std::system_error(errno, std::system_category(), "open exec file");
-					sharedAccess.reset(new int(fd), [](int *p){ close(*p); delete p; });
-				}
-
-				bool isShownInNotice = false;
-				while (!isStopping) {
-					if (0 <= flock(*sharedAccess, LOCK_EX | LOCK_NB))
-						break;
-
-					if (EAGAIN != errno && EINTR != errno)
-						throw std::system_error(errno, std::system_category(), "flock exec file");
-
-					if (!isShownInNotice) {
-						std::cerr<<"NOTICE: Multiple access collision detected."<<std::endl;
-						isShownInNotice = true;
-					}
-
-					usleep(250000);
-				}
-
-				if (isStopping)
-					return EXIT_SUCCESS;
-
-				if (isShownInNotice)
-					std::cerr<<"NOTICE: Multiple access lock owned."<<std::endl;
-			}
-		}
-
-		Colormap colormap = DefaultColormap(getAppDisplay(), screen);
-		colorWhite.pixel = WhitePixel(getAppDisplay(), screen);
-		colorBlack.pixel = BlackPixel(getAppDisplay(), screen);
-		XColorPtr color;
-		replaceColor(colormap, colorXobject, color);
-
-		XGCValues gcValues;
-		gcValues.function           = GXcopy;
-		gcValues.plane_mask         = AllPlanes;
-		gcValues.foreground         = colorWhite.pixel;
-		gcValues.background         = colorBlack.pixel;
-		gcValues.line_width         = 0;
-		gcValues.line_style         = LineSolid;
-		gcValues.cap_style          = CapButt;
-		gcValues.join_style         = JoinMiter;
-		gcValues.fill_style         = FillSolid;
-		gcValues.fill_rule          = WindingRule;
-		gcValues.graphics_exposures = False;
-		gcValues.clip_x_origin      = 0;
-		gcValues.clip_y_origin      = 0;
-		gcValues.clip_mask          = None;
-		gcValues.subwindow_mode     = IncludeInferiors;
-
-		std::shared_ptr<_XGC> gc(XCreateGC(getAppDisplay(), *window,
-										   GCFunction | GCPlaneMask
-										   | GCForeground | GCBackground
-										   | GCLineWidth | GCLineStyle
-										   | GCCapStyle | GCJoinStyle
-										   | GCFillStyle | GCFillRule
-										   | GCGraphicsExposures
-										   | GCClipXOrigin | GCClipYOrigin | GCClipMask
-										   | GCSubwindowMode, &gcValues),
-		[](GC c) {
-			XFreeGC(getAppDisplay(), c);
+		Window wnd = XCreateSimpleWindow(getAppDisplay(), DefaultRootWindow(getAppDisplay()),
+										 geom.x, geom.y, geom.width, geom.height, 1,
+										 WhitePixel(getAppDisplay(), screen), BlackPixel(getAppDisplay(), screen));
+		if (None == wnd)
+			throw std::runtime_error("Can not create main window");
+		window.reset(new Window(wnd), [](Window *w) {
+			XDestroyWindow(getAppDisplay(), *w);
+			delete w;
 		});
 
-		PixmapHandle doubleBuffer(nullptr, releasePixmap);
+		XStoreName(getAppDisplay(), wnd, APP_NAME);
+		XSetIconName(getAppDisplay(), wnd, APP_NAME);
 
-		unsigned long long refresh = 0;
-		while (!isStopping) {
-			if (0 < XPending(getAppDisplay())) {
-				XEvent e;
-				XNextEvent(getAppDisplay(), &e);
+		XSizeHints sh = { 0 };
+		sh.width = sh.min_width = geom.width;
+		sh.height = sh.min_height = geom.height;
+		sh.x = geom.x;
+		sh.y = geom.y;
+		sh.flags = PSize | PMinSize | PPosition;
+		XSetWMNormalHints(getAppDisplay(), wnd, &sh);
 
-				switch (e.type) {
-					case KeyPress:
-					case ButtonPress:
-					case ClientMessage:
-						isStopping = 1;
-						break;
-					case Expose:
-						render(*window, gc.get(), colormap, doubleBuffer, color);
-				}
-			} else {
-				const auto diff = getNow() - refresh;
-				if (maxFps > 0) {
-					const long long remain = (1000ULL / maxFps) - diff;
+		icon.reset(new Pixmap(
+					   XCreateBitmapFromData(getAppDisplay(), wnd, (const char *)xlogo_bits,
+											 xlogo_width, xlogo_height)));
+		XWMHints wh = { 0 };
+		wh.flags = IconPixmapHint;
+		wh.icon_pixmap = *icon;
+		XSetWMHints(getAppDisplay(), wnd, &wh);
 
-					if (remain < 0) {
-						render(*window, gc.get(), colormap, doubleBuffer, color);
-						XSync(getAppDisplay(), False);
-						refresh += diff;
-					} else
-						usleep(remain*1000ULL);
-				}
+		Atom delWindow = XInternAtom(getAppDisplay(), "WM_DELETE_WINDOW", False);
+		XSetWMProtocols(getAppDisplay(), wnd, &delWindow, 1);
+
+		XSelectInput(getAppDisplay(), wnd, ExposureMask | KeyPressMask | ButtonPressMask);
+
+		XMapWindow(getAppDisplay(), wnd);
+	} else {
+		if (isMultipleAccess) {
+			// Simple lock on exe file - need not extra file(s)
+			{
+				const int fd = open(getProcessPath(argv[0]).c_str(), O_CLOEXEC | O_RDONLY, 0);
+				if (fd < 0)
+					throw std::system_error(errno, std::system_category(), "open exec file");
+				sharedAccess.reset(new int(fd), [](int *p) {
+					close(*p);
+					delete p;
+				});
 			}
-		} // while (!isStopping)
+
+			bool isShownInNotice = false;
+			while (!isStopping) {
+				if (0 <= flock(*sharedAccess, LOCK_EX | LOCK_NB))
+					break;
+
+				if (EAGAIN != errno && EINTR != errno)
+					throw std::system_error(errno, std::system_category(), "flock exec file");
+
+				if (!isShownInNotice) {
+					std::cerr<<"NOTICE: Multiple access collision detected."<<std::endl;
+					isShownInNotice = true;
+				}
+
+				usleep(250000);
+			}
+
+			if (isStopping)
+				return EXIT_SUCCESS;
+
+			if (isShownInNotice)
+				std::cerr<<"NOTICE: Multiple access lock owned."<<std::endl;
+		}
+	}
+
+	Colormap colormap = DefaultColormap(getAppDisplay(), screen);
+	colorWhite.pixel = WhitePixel(getAppDisplay(), screen);
+	colorBlack.pixel = BlackPixel(getAppDisplay(), screen);
+	XColorPtr color;
+	replaceColor(colormap, colorXobject, color);
+
+	XGCValues gcValues;
+	gcValues.function           = GXcopy;
+	gcValues.plane_mask         = AllPlanes;
+	gcValues.foreground         = colorWhite.pixel;
+	gcValues.background         = colorBlack.pixel;
+	gcValues.line_width         = 0;
+	gcValues.line_style         = LineSolid;
+	gcValues.cap_style          = CapButt;
+	gcValues.join_style         = JoinMiter;
+	gcValues.fill_style         = FillSolid;
+	gcValues.fill_rule          = WindingRule;
+	gcValues.graphics_exposures = False;
+	gcValues.clip_x_origin      = 0;
+	gcValues.clip_y_origin      = 0;
+	gcValues.clip_mask          = None;
+	gcValues.subwindow_mode     = IncludeInferiors;
+
+	std::shared_ptr<_XGC> gc(XCreateGC(getAppDisplay(), *window,
+									   GCFunction | GCPlaneMask
+									   | GCForeground | GCBackground
+									   | GCLineWidth | GCLineStyle
+									   | GCCapStyle | GCJoinStyle
+									   | GCFillStyle | GCFillRule
+									   | GCGraphicsExposures
+									   | GCClipXOrigin | GCClipYOrigin | GCClipMask
+									   | GCSubwindowMode, &gcValues),
+	[](GC c) {
+		XFreeGC(getAppDisplay(), c);
+	});
+
+	PixmapHandle doubleBuffer(nullptr, releasePixmap);
+
+	unsigned long long refresh = 0;
+	while (!isStopping) {
+		if (0 < XPending(getAppDisplay())) {
+			XEvent e;
+			XNextEvent(getAppDisplay(), &e);
+
+			switch (e.type) {
+				case KeyPress:
+				case ButtonPress:
+				case ClientMessage:
+					isStopping = 1;
+					break;
+				case Expose:
+					render(*window, gc.get(), colormap, doubleBuffer, color);
+			}
+		} else {
+			const auto diff = getNow() - refresh;
+			if (maxFps > 0) {
+				const long long remain = (1000ULL / maxFps) - diff;
+
+				if (remain < 0) {
+					render(*window, gc.get(), colormap, doubleBuffer, color);
+					XSync(getAppDisplay(), False);
+					refresh += diff;
+				} else
+					usleep(remain*1000ULL);
+			}
+		}
+	} // while (!isStopping)
 	return EXIT_SUCCESS;
-}
-catch (const std::exception &e) {
+} catch (const std::exception &e) {
 	const char *msg = e.what();
 	if (nullptr == msg || 0 == *msg)
 		msg = "std::exception w/o message";

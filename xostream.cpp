@@ -33,9 +33,9 @@ std::ostream &operator<<(std::ostream &s, const XColor &c) {
 	const char f = s.fill();
 	s.fill('0');
 	s<<"rgb:/"
-        <<((c.flags & DoRed)?"":"*")<<std::setw(4)<<c.red
-	    <<","<<((c.flags & DoGreen)?"":"*")<<std::setw(4)<<c.green
-	    <<","<<((c.flags & DoBlue)?"":"*")<<std::setw(4)<<c.blue;
+	 <<((c.flags & DoRed)?"":"*")<<std::setw(4)<<c.red
+	 <<","<<((c.flags & DoGreen)?"":"*")<<std::setw(4)<<c.green
+	 <<","<<((c.flags & DoBlue)?"":"*")<<std::setw(4)<<c.blue;
 	s.fill(f);
 	s.flags(flags);
 	return s;
