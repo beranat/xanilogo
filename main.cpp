@@ -80,7 +80,7 @@ static const float minScale = 0.25f;    // 1/4 of screen for smallest X
 
 volatile sig_atomic_t isStopping = 0;
 
-static Window external = None;
+static Window windowId = None;
 static XColor colorBlack = {0, 0x0000, 0x0000, 0x0000};
 static XColor colorWhite = {0, 0xFFFF, 0xFFFF, 0xFFFF};
 
@@ -354,9 +354,7 @@ void initVariables(int argc, char *argv[]) {
 	getValue(db, "showFPS",     isShowFps, isShowFps);
 	getValue(db, "maxFPS",      maxFps, maxFps);
 
-	std::string logName;
-
-	if (getValue(db, "logFile", logName) && !logName.empty()) {
+	if (std::string logName; getValue(db, "logFile", logName) && !logName.empty()) {
 		logFile.open(logName, std::fstream::out);
 
 		if (logFile.is_open()) {
@@ -366,15 +364,24 @@ void initVariables(int argc, char *argv[]) {
 			std::cerr<<"WARN: log-file "<<logName<<" openning error, stderr will be used."<<std::endl;
 	}
 
-	bool isRoot = false;
-	getValue(db, "root",        isRoot);
+	if (bool isRoot = false; getValue(db, "root", isRoot) && isRoot)
+		windowId = DefaultRootWindow(getAppDisplay());
 
-	if (isRoot)
-		external = DefaultRootWindow(getAppDisplay());
+	if (Window id = None; getValue(db, "windowId",   id)) {
+		windowId = id;
+	}
+	else if (const char *xid = getenv("XSCREENSAVER_WINDOW"); xid != NULL) {
+		char *tail = nullptr;
+		const Window id = static_cast<Window>(strtoul(xid, &tail, 0));
+		if ((errno == ERANGE) || (nullptr == tail) || (0 != *tail && !isspace(*tail)))
+			throw std::runtime_error("env/XSCREENSAVER_WINDOW invalid windowId " + std::string(xid));
 
-	if (getValue(db, "windowId",   external)) {
+		windowId = id;
+	}
+
+	if (windowId != None) {
 		XWindowAttributes geometry;
-		if (0 == XGetWindowAttributes(getAppDisplay(), external, &geometry))
+		if (0 == XGetWindowAttributes(getAppDisplay(), windowId, &geometry))
 			throw std::runtime_error("Specified invalid or restricted windowId");
 	}
 }
@@ -413,7 +420,7 @@ std::string getProcessPath(const char* arg0) {
     return path;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) try {
 	if (2 == argc && (0 == strcmp(argShortHelp, argv[1]) || 0 == strcmp(argLongHelp,  argv[1]))) {
 		std::cout<<APP_NAME<<" version "<<VERSION<<" Copyright (c) 2002 by madRat"<<std::endl
 				 <<std::endl
@@ -435,7 +442,6 @@ int main(int argc, char *argv[]) {
 		return EXIT_SUCCESS;
 	}
 
-	try {
 		std::shared_ptr<int> sharedAccess;
 
 		srand(time(NULL));
@@ -451,7 +457,7 @@ int main(int argc, char *argv[]) {
 
 		const int screen = DefaultScreen(getAppDisplay());
 		PixmapHandle icon(nullptr, releasePixmap);
-		std::shared_ptr<Window> window(new Window(external));
+		std::shared_ptr<Window> window(new Window(windowId));
 
 		if (None == *window) {
 			if (isMultipleAccess)
@@ -593,12 +599,12 @@ int main(int argc, char *argv[]) {
 				}
 			}
 		} // while (!isStopping)
-	} catch (const std::exception &e) {
-		const char *msg = e.what();
-		if (nullptr == msg || 0 == *msg)
-			msg = "std::exception w/o message";
-		std::cerr<<"ERROR: "<<e.what()<<(('.'!=msg[strlen(msg)-1])?".":"")<<std::endl;
-		return EXIT_FAILURE;
-	}
 	return EXIT_SUCCESS;
+}
+catch (const std::exception &e) {
+	const char *msg = e.what();
+	if (nullptr == msg || 0 == *msg)
+		msg = "std::exception w/o message";
+	std::cerr<<"ERROR: "<<e.what()<<(('.'!=msg[strlen(msg)-1])?".":"")<<std::endl;
+	return EXIT_FAILURE;
 }
