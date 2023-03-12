@@ -19,27 +19,35 @@
 // vim: noexpandtab shiftwidth=4 tabstop=4 :
 
 #pragma once
+#include <cassert>
+#include <cstddef>
 #include <limits>
 
 template <typename T> struct Vector4 {
+	static constexpr size_t dimension = 4;
 	typedef T type;
-	type v[4];
+	type v[dimension];
 
-	Vector4(const T &x = 0, const T &y = 0, const T &z = 0, const T &w = 1) {
+	constexpr Vector4() noexcept : Vector4(0) {
+	}
+
+	explicit constexpr Vector4(const T &x, const T &y = 0, const T &z = 0, const T &w = 1) noexcept {
 		v[0] = x;
 		v[1] = y;
 		v[2] = z;
 		v[3] = w;
 	}
 
-	explicit Vector4(const XPoint &p) : Vector4(p.x, p.y) {
+	explicit constexpr Vector4(const XPoint &p) noexcept : Vector4(p.x, p.y) {
 	}
 
-	const T &operator[](size_t ind) const {
+	constexpr const T &operator[](size_t ind) const noexcept {
+		assert(ind < dimension);
 		return v[ind];
 	}
 
-	T &operator[](size_t ind) {
+	T& operator[](size_t ind) noexcept {
+		assert(ind < dimension);
 		return v[ind];
 	}
 
@@ -51,67 +59,69 @@ template <typename T> struct Vector4 {
 		return static_cast<R>(v);
 	}
 
-	operator XPoint() const {
+	constexpr operator XPoint() const noexcept {
 		XPoint p;
-		p.x = convert<int>(v[0]);
-		p.y = convert<int>(v[1]);
+		p.x = convert<decltype(p.x)>(v[0]);
+		p.y = convert<decltype(p.y)>(v[1]);
 		return p;
 	}
 
 	Vector4<T> operator~() const {
-		if (fabs(v[3]) < std::numeric_limits<T>::epsilon())
+		const type w = v[dimension-1];
+		if (fabs(w) < std::numeric_limits<T>::epsilon())
 			return *this;
+
 		Vector4<T> p;
-		for (int i = 0; i < 4; ++i)
-			p.v[i] = v[i] / v[3];
+		for (size_t i = 0; i < dimension; ++i)
+			p.v[i] = v[i] / w;
 		return p;
 	}
 
-	Vector4<T> operator+(const Vector4<T> &r) const {
+	constexpr Vector4<T> operator+(const Vector4<T> &r) const noexcept {
 		Vector4<T> l(*this);
 		return (l+=r);
 	}
 
-	Vector4<T> &operator+=(const Vector4<T> &r) {
-		for (int i =0; i < 4; ++i)
+	Vector4<T>& operator+=(const Vector4<T> &r) noexcept {
+		for (size_t i = 0; i < dimension; ++i)
 			v[i] += r.v[i];
 		return *this;
 	}
 
-	T operator*(const Vector4<T> &r) const {
+	constexpr T operator*(const Vector4<T> &r) const noexcept {
 		T scale = 0;
-		for (int i =0; i < 4; ++i)
+		for (size_t i = 0; i < dimension; ++i)
 			scale += v[i]*r.v[i];
 		return scale;
 	}
 
-	T length() const {
+	constexpr T length() const noexcept {
 		T l = 0;
-		for (int i =0; i < 4; ++i)
+		for (size_t i =0; i < dimension; ++i)
 			l += v[i]*v[i];
 		return sqrt(l);
 	}
 
-	Vector4<T> normalized() const {
+	constexpr Vector4<T> normalized() const {
 		const T l = length();
 		Vector4<T> t(*this);
 		if (l > 2*std::numeric_limits<T>::epsilon()) {
-			for (size_t i =0; i < sizeof(t.v)/sizeof(*t.v); ++i)
+			for (size_t i = 0; i < dimension; ++i)
 				t.v[i] /= l;
 		}
 		return t;
 	}
 };
 
-template <typename T> Vector4<T> operator*(const T &r1, const Vector4<T> &r2) {
+template<typename T> Vector4<T> operator*(const T &r1, const Vector4<T> &r2) {
 	Vector4<T> l;
-	for (int i =0; i < 4; ++i)
+	for (size_t i =0; i < r2.dimension; ++i)
 		l.v[i] = r1*r2.v[i];
 	return l;
 }
 
 template <typename T> std::ostream &operator<<(std::ostream &s, const Vector4<T> &v) {
-	for (int i =0; i < 4; ++i) {
+	for (size_t i =0; i < v.dimension; ++i) {
 		if (0 != i)
 			s<<", ";
 		s<<v[i];
@@ -120,57 +130,59 @@ template <typename T> std::ostream &operator<<(std::ostream &s, const Vector4<T>
 }
 
 template <typename T> struct Matrix4x4 {
+	static const size_t dimension = 4;
 	typedef T Type;
-	Type v[4][4];
+	Type v[dimension][dimension];
 
-	Matrix4x4() {
-		for (int i =0; i < 4; ++i)
-			for (int j =0; j < 4; ++j)
+	constexpr Matrix4x4() noexcept {
+		for (size_t i =0; i < dimension; ++i)
+			for (size_t j =0; j < dimension; ++j)
 				v[i][j]=0;
 	}
 
-	explicit Matrix4x4(int r) : Matrix4x4() {
-		for (int i =0; i < 4; ++i)
+	explicit constexpr Matrix4x4(T r) noexcept : Matrix4x4() {
+		for (size_t i =0; i < dimension; ++i)
 			v[i][i] = r;
 	}
 
-	Vector4<T> operator*(const Vector4<T> &r) const {
+	constexpr Vector4<T> operator*(const Vector4<T> &r) const {
 		Vector4<T> res;
-		for (int i =0; i < 4; ++i) {
+		for (size_t i = 0; i < dimension; ++i) {
 			T val = 0;
-			for (int j =0; j < 4; ++j)
+			for (size_t j = 0; j < dimension; ++j)
 				val += v[i][j]*r.v[j];
 			res.v[i] = val;
 		}
 		return res;
 	}
 
-	Matrix4x4<T> operator*(const Matrix4x4<T> &r) const {
+	constexpr Matrix4x4<T> operator*(const Matrix4x4<T> &r) const {
 		Matrix4x4<T> m;
-		for (int i =0; i < 4; ++i)
-			for (int j =0; j < 4; ++j) {
+		for (size_t i =0; i < dimension; ++i)
+			for (size_t j =0; j < dimension; ++j) {
 				T val = 0;
-				for (int k =0; k < 4; ++k)
+				for (size_t k =0; k < dimension; ++k)
 					val += v[i][k]*r.v[k][j];
 				m.v[i][j] = val;
 			}
 		return m;
 	}
-	const T *const operator[](size_t ind) const {
+	constexpr const T *const operator[](size_t ind) const noexcept {
+		assert(ind < dimension);
 		return v[ind];
 	}
 
 	T *const operator[](size_t ind) {
+		assert(ind < dimension);
 		return v[ind];
 	}
-
 };
 
 template <typename T> std::ostream &operator<<(std::ostream &s, const Matrix4x4<T> &v) {
-	for (int i =0; i < 4; ++i) {
+	for (size_t i =0; i < v.dimension; ++i) {
 		if (0 != i)
 			s<<std::endl;
-		for (int j =0; j < 4; ++j) {
+		for (size_t j =0; j < v.dimension; ++j) {
 			if (0 != j)
 				s<<", ";
 			s<<v.v[i][j];
@@ -179,7 +191,7 @@ template <typename T> std::ostream &operator<<(std::ostream &s, const Matrix4x4<
 	return s;
 }
 
-template <typename T> Matrix4x4<T> setScale(const Vector4<T> &v) {
+template <typename T> Matrix4x4<T> setScale(const Vector4<T> &v) noexcept {
 	Matrix4x4<T> m(1);
 	m.v[0][0] = v[0];
 	m.v[1][1] = v[1];
@@ -187,7 +199,7 @@ template <typename T> Matrix4x4<T> setScale(const Vector4<T> &v) {
 	return m;
 }
 
-template <typename T> Matrix4x4<T> setTranslation(const Vector4<T> &v) {
+template <typename T> Matrix4x4<T> setTranslation(const Vector4<T> &v) noexcept {
 	Matrix4x4<T> m(1);
 	m.v[0][3] = v[0];
 	m.v[1][3] = v[1];
@@ -223,13 +235,13 @@ template <typename T> Matrix4x4<T> setRotation(const T &angle, const Vector4<T> 
 	return m;
 }
 
-template <typename T> Matrix4x4<T> setOrthographic() {
+template<typename T> Matrix4x4<T> setOrthographic() noexcept {
 	Matrix4x4<T> m(1);
 	m[2][2] = 0;
 	return m;
 }
 
-template <typename T> Matrix4x4<T> setPerspective(const T &n, const T &f) {
+template<typename T> Matrix4x4<T> setPerspective(const T &n, const T &f) {
 	Matrix4x4<T> m(0);
 	m[0][0] = 1;
 	m[1][1] = 1;
@@ -240,7 +252,7 @@ template <typename T> Matrix4x4<T> setPerspective(const T &n, const T &f) {
 	return m;
 }
 
-template<typename T> Matrix4x4<T> setViewport(const int x, const int y, const int w, const int h) {
+template<typename T> Matrix4x4<T> setViewport(const int x, const int y, const int w, const int h) noexcept {
 	Matrix4x4<T> m(0);
 	const T two = 2;
 	m.v[0][0] = w/two;

@@ -43,7 +43,7 @@ Xfce screensaver application program draws in the pseudo 3D using only simplest 
 
 %build
 %{__make} clean
-%{make_build}
+%{make_build} CONFIG=release
 
 %clean
 %{__make} %{?_smp_mflags} clean
