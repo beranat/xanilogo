@@ -337,9 +337,10 @@ template<class T, class D> bool getValue(XrmDatabasePtr &db, const char *name, T
 
 void initVariables(int argc, char *argv[]) {
 	XrmInitialize();
-	char *manager = XResourceManagerString(getAppDisplay());
 
+	const char* manager = XResourceManagerString(getAppDisplay());
 	XrmDatabase tmp = XrmGetStringDatabase(manager);
+
 	XrmParseCommand(&tmp, const_cast<XrmOptionDescRec *>(xrmOptions),
 					sizeof(xrmOptions)/sizeof(*xrmOptions), APP_NAME, &argc, argv);
 	XrmDatabasePtr db(tmp, XrmDestroyDatabase);
@@ -365,7 +366,7 @@ void initVariables(int argc, char *argv[]) {
 	}
 
 	if (bool isRoot = false; getValue(db, "root", isRoot) && isRoot)
-		windowId = DefaultRootWindow(getAppDisplay());
+		windowId = XDefaultRootWindow(getAppDisplay());
 
 	if (Window wid = None; getValue(db, "windowId", wid))
 		windowId = wid;
@@ -455,7 +456,7 @@ int main(int argc, char *argv[]) try {
 
 	initVariables(argc, argv);
 
-	const int screen = DefaultScreen(getAppDisplay());
+	const int screen = XDefaultScreen(getAppDisplay());
 	PixmapHandle icon(nullptr, releasePixmap);
 	std::shared_ptr<Window> window(new Window(windowId));
 
@@ -463,15 +464,16 @@ int main(int argc, char *argv[]) try {
 		if (isMultipleAccess)
 			std::cerr<<"NOTICE: Multiple access is not applicable to the private window, ignored."<<std::endl;
 
-		Window wnd = XCreateSimpleWindow(getAppDisplay(), DefaultRootWindow(getAppDisplay()),
-										 geom.x, geom.y, geom.width, geom.height, 1,
-										 WhitePixel(getAppDisplay(), screen), BlackPixel(getAppDisplay(), screen));
+		Window wnd = XCreateSimpleWindow(getAppDisplay(), XDefaultRootWindow(getAppDisplay()),
+											geom.x, geom.y, geom.width, geom.height, 1,
+											XWhitePixel(getAppDisplay(), screen),
+											XBlackPixel(getAppDisplay(), screen));
 		if (None == wnd)
 			throw std::runtime_error("Can not create main window");
-		window.reset(new Window(wnd), [](Window *w) {
-			XDestroyWindow(getAppDisplay(), *w);
-			delete w;
-		});
+			window.reset(new Window(wnd), [](Window *w) {
+				XDestroyWindow(getAppDisplay(), *w);
+				delete w;
+			});
 
 		XStoreName(getAppDisplay(), wnd, APP_NAME);
 		XSetIconName(getAppDisplay(), wnd, APP_NAME);
@@ -535,9 +537,9 @@ int main(int argc, char *argv[]) try {
 		}
 	}
 
-	Colormap colormap = DefaultColormap(getAppDisplay(), screen);
-	colorWhite.pixel = WhitePixel(getAppDisplay(), screen);
-	colorBlack.pixel = BlackPixel(getAppDisplay(), screen);
+	Colormap colormap = XDefaultColormap(getAppDisplay(), screen);
+	colorWhite.pixel = XWhitePixel(getAppDisplay(), screen);
+	colorBlack.pixel = XBlackPixel(getAppDisplay(), screen);
 	XColorPtr color;
 	replaceColor(colormap, colorXobject, color);
 

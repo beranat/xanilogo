@@ -145,7 +145,7 @@ bool getValue(XrmDatabase db, const char *name, XColor &value) {
 	XColor color;
 	Display *const display = getAppDisplay();
 	const int screen = XDefaultScreen(display);
-	Colormap map = DefaultColormap(display, screen);
+	Colormap map = XDefaultColormap(display, screen);
 	if (0 == XParseColor(display, map, &*v.begin(), &color)) {
 		std::cerr<<"WARN: Resource "<<name<<" value '"<<v<<"' can not be XColor, skipped."<<std::endl;
 		return false;
