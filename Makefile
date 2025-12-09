@@ -23,6 +23,9 @@ XFCE-DESKTOP=$(NAME).desktop
 
 SOURCES=$(wildcard *.cpp)
 
+debug: $(BIN)
+	./$(BIN) -showfps -maxfps 25
+
 all: check $(BIN)
 
 $(BIN): $(SOURCES)

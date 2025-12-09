@@ -262,19 +262,7 @@ void releasePixmap(Pixmap *p) {
 	delete p;
 }
 
-void render(const Window &window, const GC &gc, const Colormap &colormap, PixmapHandle &doubleBuffer,
-			XColorPtr &color) {
-	{
-		// FPS calculate
-		++fpsCount;
-		const auto diff = getNow() - fpsStart;
-
-		if (diff > fpsPeriod) {
-			fpsValue = fpsCount*1.0f*fpsPeriod / diff;
-			fpsStart += diff;
-			fpsCount = 0;
-		}
-	}
+void render(const Window &window, const GC &gc, const Colormap &colormap, PixmapHandle &doubleBuffer, XColorPtr &color) {
 
 	XWindowAttributes geometry;
 	XGetWindowAttributes(getAppDisplay(), window, &geometry);
@@ -325,6 +313,20 @@ void render(const Window &window, const GC &gc, const Colormap &colormap, Pixmap
 	if (isDoubleBuffer)
 		XCopyArea(getAppDisplay(), drawable, window, gc,
 				  0, 0, geometry.width, geometry.height, geometry.x, geometry.y);
+
+	XFlush(getAppDisplay());
+
+	{
+		// FPS calculate
+		++fpsCount;
+		const auto diff = getNow() - fpsStart;
+
+		if (diff > fpsPeriod) {
+			fpsValue = fpsCount*1000.0f / diff;
+			fpsStart += diff;
+			fpsCount = 0;
+		}
+	}
 }
 
 template<class T> bool getValue(XrmDatabasePtr &db, const char *name, T &value) {
@@ -591,16 +593,18 @@ int main(int argc, char *argv[]) try {
 					render(*window, gc.get(), colormap, doubleBuffer, color);
 			}
 		} else {
-			const auto diff = getNow() - refresh;
 			if (maxFps > 0) {
-				const long long remain = (1000ULL / maxFps) - diff;
+				auto diff = getNow() - refresh;
+				const long long remain = (1000000ULL / maxFps) - diff*1000ULL;
 
-				if (remain < 0) {
-					render(*window, gc.get(), colormap, doubleBuffer, color);
-					XSync(getAppDisplay(), False);
-					refresh += diff;
-				} else
-					usleep(remain*1000ULL);
+				if (const long long remainUs = (1000000ULL / maxFps) - diff*1000ULL; 0<remainUs) {
+					usleep(remainUs);
+					diff += remainUs / 1000;
+				}
+
+				render(*window, gc.get(), colormap, doubleBuffer, color);
+				XSync(getAppDisplay(), False);
+				refresh += diff;
 			}
 		}
 	} // while (!isStopping)
