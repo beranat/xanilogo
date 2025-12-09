@@ -2,34 +2,22 @@
 <screensaver name="xanilogo" _label="XAniLogo">
   <command arg="-root -double -shared"/>
   <boolean id="showfps" _label="Show frame rate" arg-set="-showfps"/>
-  <number id="maxfps"
-          type="slider"
-          arg="-maxfps %"
-          _label="FPS limit (CPU usage)"
-          _low-label="5 fps"
-          _high-label="200 fps"
-          low="5"
-          high="200"
-          default="25"
-          />
+  <number id="maxfps" type="slider" arg="-maxfps %" _label="FPS limit (CPU usage)" _low-label="5 fps" _high-label="200 fps" low="5" high="200" default="25"/>
   <number id="anim" type="spinbutton" arg="-anim %" _label="Fade-in and Fade-out time (ms)" low="0" high="10000" default="800"/>
   <number id="visible" type="spinbutton" arg="-visible %" _label="Still image time (ms)" low="0" high="10000" default="500"/>
   <number id="hidden" type="spinbutton" arg="-hidden %" _label="Black screen time (ms)" low="0" high="10000" default="400"/>
-
   <select id="color">
-    <option id="color-random"	_label="Randomized" arg-set="" />
-    <option id="color-white"	_label="White" arg-set="-color white" />
-    <option id="color-yellow"	_label="Yellow" arg-set="-color yellow" />
-    <option id="color-magenta"	_label="Magenta" arg-set="-color magenta" />
-    <option id="color-red"	_label="Red" arg-set="-color red" />
-    <option id="color-cyan"	_label="Cyan" arg-set="-color cyan" />
-    <option id="color-green"	_label="Green" arg-set="-color green" />
-    <option id="color-blue"	_label="Blue" arg-set="-color blue" />
-    <option id="color-gray"	_label="Gray" arg-set="-color gray" />
+    <option id="color-random" _label="Randomized" arg-set=""/>
+    <option id="color-white" _label="White" arg-set="-color white"/>
+    <option id="color-yellow" _label="Yellow" arg-set="-color yellow"/>
+    <option id="color-magenta" _label="Magenta" arg-set="-color magenta"/>
+    <option id="color-red" _label="Red" arg-set="-color red"/>
+    <option id="color-cyan" _label="Cyan" arg-set="-color cyan"/>
+    <option id="color-green" _label="Green" arg-set="-color green"/>
+    <option id="color-blue" _label="Blue" arg-set="-color blue"/>
+    <option id="color-gray" _label="Gray" arg-set="-color gray"/>
   </select>
-
-  <xscreensaver-updater />
-
+  <xscreensaver-updater/>
   <_description>
   It draws in the pseudo 3D using only simplest X11-calls (draw rectangles) a animation sequence letter X rotation frames from full invisiblty up to perpendicular projection and back.
   </_description>
