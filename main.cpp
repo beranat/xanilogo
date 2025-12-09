@@ -49,6 +49,7 @@
 #include <X11/Xutil.h>
 
 #include "main.h"
+#include "helpers.hpp"
 #include "xparam.h"
 #include "xostream.h"
 #include "matrix.hpp"
@@ -158,7 +159,7 @@ int xErrorHandler(Display *display, XErrorEvent *event) {
 void breakSignalHandler(int signal) {
 	isStopping = true;
 	static const char *const message = "Process break signal received\n";
-	write(STDOUT_FILENO, message, strlen(message));
+	ssize_t unused __attribute__((unused)) = write(STDOUT_FILENO, message, strlen(message));
 }
 
 unsigned long long getNow() {
@@ -278,7 +279,7 @@ void render(const Window &window, const GC &gc, const Colormap &colormap, Pixmap
 		if (!!doubleBuffer && None != *doubleBuffer)
 			XGetGeometry(getAppDisplay(), *doubleBuffer, &root, &x, &y, &width, &height, &border, &depth);
 
-		if (geometry.width != width || geometry.height != height || geometry.depth != depth) {
+		if (!isEqual(geometry.width, width) || !isEqual(geometry.height, height) || !isEqual(geometry.depth, depth)) {
 			doubleBuffer.reset(
 				new Pixmap(
 					XCreatePixmap(getAppDisplay(), window, geometry.width, geometry.height, geometry.depth)));
@@ -402,25 +403,26 @@ std::string getProcessPath(const char *arg0) {
 				break;
 			}
 
-			if (path.size() > r)
+			assert(0 <= r);
+			if (static_cast<size_t>(r) < path.size())
 				return path;
 
 			path.resize(path.size()<<1);
 		} while (true);
 	}
 
-	char *path = realpath(arg0, NULL);
+	char *path = realpath(arg0, nullptr);
 	if (nullptr == path)
 		throw std::system_error(errno, std::system_category(), "No realpath for argv[0]");
 
-	std::string result = path;
+	const std::string result(path);
 	free(path);
 	path = nullptr;
 
 	if (result.length() < 2) // "/a" - smallest valid name
 		throw std::runtime_error("Invalid realpath for argv");
 
-	return path;
+	return result;
 }
 
 int main(int argc, char *argv[]) try {
@@ -438,6 +440,14 @@ int main(int argc, char *argv[]) try {
 					break;
 				case XrmoptionSepArg:
 					std::cout<<" value";
+					break;
+				case XrmoptionNoArg:
+				case XrmoptionIsArg:
+				case XrmoptionResArg:
+				case XrmoptionSkipArg:
+				case XrmoptionSkipLine:
+				case XrmoptionSkipNArgs:
+					assert(false); // Ignore as not supported yet
 					break;
 			}
 		}
@@ -472,10 +482,11 @@ int main(int argc, char *argv[]) try {
 											XBlackPixel(getAppDisplay(), screen));
 		if (None == wnd)
 			throw std::runtime_error("Can not create main window");
-			window.reset(new Window(wnd), [](Window *w) {
-				XDestroyWindow(getAppDisplay(), *w);
-				delete w;
-			});
+
+		window.reset(new Window(wnd), [](Window *w) {
+			XDestroyWindow(getAppDisplay(), *w);
+			delete w;
+		});
 
 		XStoreName(getAppDisplay(), wnd, APP_NAME);
 		XSetIconName(getAppDisplay(), wnd, APP_NAME);
@@ -595,7 +606,6 @@ int main(int argc, char *argv[]) try {
 		} else {
 			if (maxFps > 0) {
 				auto diff = getNow() - refresh;
-				const long long remain = (1000000ULL / maxFps) - diff*1000ULL;
 
 				if (const long long remainUs = (1000000ULL / maxFps) - diff*1000ULL; 0<remainUs) {
 					usleep(remainUs);
