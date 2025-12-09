@@ -14,7 +14,7 @@ Summary: Simple X-logo animation for some screen savers and generic application
 Group: Amusements/Graphics
 License: GPL v3
 URL: https://github.com/beranat/xanilogo/
-BuildRequires:	gcc-c++ make libX11-devel
+BuildRequires:	gcc-c++ make libX11-devel cppcheck
 
 %description
 This is a meta package for all screen savers frameworks.
