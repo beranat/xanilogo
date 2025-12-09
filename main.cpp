@@ -485,7 +485,7 @@ int main(int argc, char *argv[]) try {
 		XSetWMNormalHints(getAppDisplay(), wnd, &sh);
 
 		icon.reset(new Pixmap(
-					   XCreateBitmapFromData(getAppDisplay(), wnd, (const char *)xlogo_bits,
+					   XCreateBitmapFromData(getAppDisplay(), wnd, reinterpret_cast<const char *>(xlogo_bits),
 											 xlogo_width, xlogo_height)));
 		XWMHints wh = { 0 };
 		wh.flags = IconPixmapHint;
