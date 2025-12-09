@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=XAniLogo
+Comment=X letter rotation animation
+Exec=/usr/libexec/xfce4-screensaver/xanilogo -root -double -shared
+TryExec=/usr/libexec/xfce4-screensaver/xanilogo
+StartupNotify=false
+Terminal=false
+Type=Application
+Categories=Screensaver;X-XFCE;
+OnlyShowIn=XFCE;
+Hidden=true
+X-Desktop-File-Install-Version=0.26

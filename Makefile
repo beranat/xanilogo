@@ -1,4 +1,4 @@
-STD = c++11
+STD = c++17
 CONFIG ?= release
 CXXFLAGS += -std=$(STD)
 LDFLAGS += -lX11 -pthread
@@ -15,10 +15,11 @@ endif
 
 NAME=xanilogo
 BIN=$(NAME)
-
 MAN=$(NAME).man
 XML=$(NAME).xml
-CONF=$(NAME).conf
+
+XSS-CONF=$(NAME).conf
+XFCE-DESKTOP=$(NAME).desktop
 
 SOURCES=$(wildcard *.cpp)
 
@@ -33,14 +34,25 @@ check:
 clean:
 	rm -f $(BIN)
 
-install: $(BIN)
+install: app-install xss-install xfce4-install
+
+app-install: $(BIN)
 	install -d '$(DESTDIR)/usr/share/man/man6x'
 	gzip <'$(MAN)' >'$(DESTDIR)/usr/share/man/man6x/$(NAME).6x.gz'
-	install -D '$(BIN)' '$(DESTDIR)/usr/libexec/xscreensaver/$(BIN)'
+	install -D '$(BIN)' '$(DESTDIR)/usr/bin/$(BIN)'
 	install -Dm644 '$(XML)' '$(DESTDIR)/usr/share/xscreensaver/config/$(XML)'
-	install -Dm644 '$(CONF)' '$(DESTDIR)/usr/share/xscreensaver/hacks.conf.d/$(CONF)'
 
-update:
+xss-install:
+	install -Dm644 '$(XSS-CONF)' '$(DESTDIR)/usr/share/xscreensaver/hacks.conf.d/$(XSS-CONF)'
+	install -d '$(DESTDIR)/usr/libexec/xscreensaver'
+	ln -sf '../../bin/$(BIN)' '$(DESTDIR)/usr/libexec/xscreensaver/$(BIN)'
+
+xfce4-install:
+	install -d '$(DESTDIR)/usr/libexec/xfce4-screensaver'
+	ln -sf '../../bin/$(BIN)' '$(DESTDIR)/usr/libexec/xfce4-screensaver/$(BIN)'
+	install -Dm644 '$(XFCE-DESKTOP)' '$(DESTDIR)/usr/share/applications/screensavers/$(XFCE-DESKTOP)'
+
+xss-update:
 	/usr/sbin/update-xscreensaver-hacks
 
-.PHONY: clean install check update
+.PHONY: clean install check xss-update
